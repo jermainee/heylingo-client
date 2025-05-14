@@ -1,7 +1,7 @@
 {
   "name": "heylingo",
   "version": "0.1.0",
-  "description": "Placeholder for Heylingo website translation package",
+  "description": "Website translation made easy",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
