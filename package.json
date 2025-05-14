@@ -1,6 +1,6 @@
 {
   "name": "heylingo",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Website translation made easy",
   "main": "index.js",
   "scripts": {
