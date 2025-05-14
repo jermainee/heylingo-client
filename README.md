@@ -1,5 +1,5 @@
 
-# Heylingo Client (Embeddable Snippet)
+# Heylingo
 
 This repository contains the **Heylingo client snippet**, published on npm as [`heylingo`](https://www.npmjs.com/package/heylingo).
 
