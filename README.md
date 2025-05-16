@@ -30,3 +30,5 @@ Add the following snippet to the `<head>` section of your website:
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/>
 <script src="https://cdn.jsdelivr.net/npm/heylingo@latest/dist/heylingo.min.js"></script>
 ```
+
+➡️ Use the code `GITHUB` during checkout and get 5% off your subscription!
