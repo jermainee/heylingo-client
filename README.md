@@ -17,6 +17,7 @@ It allows you to make your website multilingual with just a few lines of code �
 
 ### 1️⃣ Create Your Heylingo Account
 Sign up at [heylingo.de](https://heylingo.de) to get started.
+Use the code `GITHUB` during checkout and get 5% off your subscription!
 
 ### 2️⃣ Set Up Your Project
 - Complete the onboarding.
@@ -30,5 +31,3 @@ Add the following snippet to the `<head>` section of your website:
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/>
 <script src="https://cdn.jsdelivr.net/npm/heylingo@latest/dist/heylingo.min.js"></script>
 ```
-
-➡️ Use the code `GITHUB` during checkout and get 5% off your subscription!
