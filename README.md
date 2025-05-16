@@ -1,11 +1,8 @@
-
 # Heylingo
 
 This repository contains the **Heylingo client snippet**, published on npm as [`heylingo`](https://www.npmjs.com/package/heylingo).
 
 It allows you to make your website multilingual with just a few lines of code — without touching your existing backend or adding i18n tokens.
-
----
 
 ## ✨ Key Features
 
@@ -16,65 +13,20 @@ It allows you to make your website multilingual with just a few lines of code �
 - 🛡️ Fully GDPR-compliant (EU servers, no tracking, AVV possible)
 - 🪶 Lightweight & easy to embed (via CDN or npm)
 
----
-
 ## 🚀 Installation & Usage
 
-### Via CDN (recommended for most websites)
+### 1️⃣ Create Your Heylingo Account
+Sign up at [heylingo.de](https://heylingo.de) to get started.
+
+### 2️⃣ Set Up Your Project
+- Complete the onboarding.
+- Add your website's domain.
+- Select the languages you want to translate into.
+
+### 3️⃣ Embed the Script
+Add the following snippet to the `<head>` section of your website:
 ```html
-<script src="https://cdn.jsdelivr.net/npm/heylingo@latest/dist/heylingo.umd.js"></script>
-<script>
-  const heylingo = new Heylingo({
-    apiKey: 'YOUR_API_KEY'
-  });
-
-  heylingo.init();
-</script>
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net"/>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/>
+<script src="https://cdn.jsdelivr.net/npm/heylingo@latest/dist/heylingo.min.js"></script>
 ```
-
-### Via npm (for advanced integrations)
-```bash
-npm install heylingo
-```
-
-Usage in your frontend app:
-```typescript
-import { Heylingo } from 'heylingo';
-
-const heylingo = new Heylingo({
-  apiKey: 'YOUR_API_KEY'
-});
-
-heylingo.init();
-```
----
-
-## 📝 Configuration
-
-| Option   | Type     | Required | Description                              |
-|----------|----------|----------|------------------------------------------|
-| `apiKey` | `string` | ✅        | Your personal API key from the Heylingo dashboard. |
-
----
-
-## 📦 Development
-
-Clone the repo and run:
-```bash
-npm install
-npm run dev
-```
-
-To build the distributable files (UMD & ESM):
-```bash
-npm run build
-```
-
----
-
-## 🔒 Privacy & GDPR Compliance
-
-- Hosted on servers located in Germany (EU)
-- No cookies or tracking scripts used
-- Optional Data Processing Agreement (AVV) for B2B customers
-- Fully compliant with GDPR requirements
