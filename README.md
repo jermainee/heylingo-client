@@ -1,6 +1,6 @@
 # Heylingo
 
-This repository contains the **Heylingo client snippet**, published on npm as [`heylingo`](https://www.npmjs.com/package/heylingo).
+This repository contains the **Heylingo client**, published on npm as [`heylingo`](https://www.npmjs.com/package/heylingo).
 
 It allows you to make your website multilingual with just a few lines of code — without touching your existing backend or adding i18n tokens.
 
