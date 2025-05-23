@@ -1,6 +1,6 @@
 {
   "name": "heylingo",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "description": "Website translation made easy",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
