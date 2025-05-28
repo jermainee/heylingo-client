@@ -16,7 +16,7 @@ It allows you to make your website multilingual with just a few lines of code �
 ## 🚀 Installation & Usage
 
 ### 1️⃣ Create Your Heylingo Account
-Sign up at [heylingo.de](https://heylingo.io) to get started.
+Sign up at [heylingo.io](https://heylingo.io) to get started.
 Use the code `GITHUB` during checkout and get 5% off your subscription!
 
 ### 2️⃣ Set Up Your Project
