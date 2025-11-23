@@ -1,0 +1,11 @@
+# Dinge, die nicht ins npm-Paket sollen
+node_modules
+npm-debug.log
+.git
+.github
+.vscode
+tests
+__tests__
+coverage
+src
+*.log
