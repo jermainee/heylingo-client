@@ -1,6 +1,6 @@
 {
   "name": "heylingo",
-  "version": "0.1.29",
+  "version": "0.1.26",
   "description": "Website translation made easy",
   "scripts": {
     "build": "uglifyjs src/heylingo.js --compress --mangle -o dist/heylingo.min.js",
