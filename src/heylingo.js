@@ -6,6 +6,9 @@
         return;
     }
 
+    // -----------------------------
+    // LocalStorage helpers
+    // -----------------------------
     function getSelectedLanguage() {
         return localStorage.getItem("selectedLanguage");
     }
@@ -22,50 +25,155 @@
         localStorage.setItem("originalLanguage", lang);
     }
 
-    function extractTextNodes() {
-        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
-            acceptNode: function (node) {
-                // Skip whitespace-only text and language switcher
-                if (!node.textContent.trim()) return NodeFilter.FILTER_REJECT;
-                if (node.parentElement.closest("#languageSwitcher")) return NodeFilter.FILTER_REJECT;
-                return NodeFilter.FILTER_ACCEPT;
-            }
-        });
-
-        const texts = new Set();
-        let node;
-        while ((node = walker.nextNode())) {
-            texts.add(node.textContent.trim());
+    // -----------------------------
+    // Helper: hashing + DOM path
+    // -----------------------------
+    function hashString(str) {
+        let hash = 0, i, chr;
+        if (str.length === 0) return '0';
+        for (i = 0; i < str.length; i++) {
+            chr = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + chr;
+            hash |= 0; // Convert to 32bit integer
         }
-        return Array.from(texts);
+        return Math.abs(hash).toString(16);
     }
 
-    function applyTranslations(translations) {
-        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
-            acceptNode: function (node) {
-                if (!node.textContent.trim()) return NodeFilter.FILTER_REJECT;
-                if (node.parentElement.closest("#languageSwitcher")) return NodeFilter.FILTER_REJECT;
-                return NodeFilter.FILTER_ACCEPT;
+    function getDomPath(el) {
+        const stack = [];
+        while (el && el.parentElement) {
+            const tag = el.tagName.toLowerCase();
+            let sibIndex = 1;
+            let sibling = el;
+            while ((sibling = sibling.previousElementSibling) != null) {
+                if (sibling.tagName.toLowerCase() === tag) {
+                    sibIndex++;
+                }
             }
-        });
-
-        let node;
-        while ((node = walker.nextNode())) {
-            const original = node.textContent.trim();
-            if (translations[original]) {
-                node.textContent = translations[original].translated_text;
-            }
+            stack.unshift(`${tag}:nth-of-type(${sibIndex})`);
+            el = el.parentElement;
         }
+        return stack.join(">");
     }
 
+    function normalizeText(text) {
+        return text.replace(/\s+/g, " ").trim();
+    }
+
+    function deriveRole(el) {
+        const tag = el.tagName.toLowerCase();
+        const inHeader = !!el.closest("header") || !!el.closest("nav");
+        const inFooter = !!el.closest("footer");
+        const isButtonLike = tag === "button" || (tag === "a" && el.getAttribute("role") === "button");
+
+        if (isButtonLike) return "button";
+        if (inHeader) return "nav";
+        if (inFooter) return "footer";
+        if (/^h[1-6]$/.test(tag)) return "heading";
+        return "body";
+    }
+
+    function buildSegmentId(el, text) {
+        const normalized = normalizeText(text).toLowerCase();
+        const role = deriveRole(el);
+        const domPath = getDomPath(el);
+        const base = [
+            window.location.hostname,
+            window.location.pathname,
+            role,
+            domPath,
+            normalized
+        ].join("|");
+
+        return hashString(base);
+    }
+
+    // -----------------------------
+    // Segment Extraction
+    // -----------------------------
+    function extractSegments() {
+        const selector = [
+            "p",
+            "li",
+            "button",
+            "a",
+            "span",
+            "h1", "h2", "h3", "h4", "h5", "h6"
+        ].join(",");
+
+        const elements = Array.from(document.querySelectorAll(selector))
+            .filter(el => !el.closest("#languageSwitcher"));
+
+        const segmentMap = new Map();
+
+        elements.forEach((el) => {
+            const text = el.innerText.trim();
+            if (!text) return;
+
+            const role = deriveRole(el);
+            const segmentId = buildSegmentId(el, text);
+
+            if (!segmentMap.has(segmentId)) {
+                segmentMap.set(segmentId, {
+                    id: segmentId,
+                    text: text,
+                    role: role,
+                    page_path: window.location.pathname,
+                    elements: []
+                });
+            }
+
+            segmentMap.get(segmentId).elements.push(el);
+        });
+
+        return Array.from(segmentMap.values());
+    }
+
+    // -----------------------------
+    // Apply translations
+    // -----------------------------
+    function applyTranslations(translations, segments) {
+        if (!translations || typeof translations !== "object") {
+            return;
+        }
+
+        segments.forEach(segment => {
+            const tr = translations[segment.id];
+            if (!tr || !tr.translated_text) return;
+
+            segment.elements.forEach(el => {
+                // Wir nutzen hier innerText, um Struktur beizubehalten
+                el.innerText = tr.translated_text;
+            });
+        });
+    }
+
+    // -----------------------------
+    // API Calls
+    // -----------------------------
     function fetchTranslations() {
         const lang = getSelectedLanguage();
+
+        if (!lang) {
+            return;
+        }
 
         if (lang === getOriginalLanguage()) {
             return;
         }
 
-        const textsToTranslate = extractTextNodes();
+        const segments = extractSegments();
+
+        if (!segments.length) {
+            return;
+        }
+
+        const payloadSegments = segments.map(s => ({
+            id: s.id,
+            text: s.text,
+            role: s.role,
+            page_path: s.page_path
+        }));
 
         fetch(`https://${API_BASE}/api/translate`, {
             method: "POST",
@@ -74,8 +182,8 @@
             },
             body: JSON.stringify({
                 domain: window.location.hostname,
-                texts: textsToTranslate,
-                target_lang: lang
+                target_lang: lang,
+                segments: payloadSegments
             })
         })
             .then(response => response.json())
@@ -84,7 +192,7 @@
                     console.error("Translation API Error:", data.error);
                     return;
                 }
-                applyTranslations(data.translations);
+                applyTranslations(data.translations, segments);
             })
             .catch(error => console.error("Error fetching translations:", error));
     }
@@ -119,6 +227,9 @@
             .catch(error => console.error("Error fetching languages:", error));
     }
 
+    // -----------------------------
+    // UI: Language Switcher
+    // -----------------------------
     function createLanguageSwitcher(languages) {
         const switcher = document.createElement("div");
         switcher.id = "languageSwitcher";
@@ -158,9 +269,12 @@
         document.body.appendChild(switcher);
     }
 
+    // -----------------------------
+    // Init
+    // -----------------------------
     document.addEventListener("DOMContentLoaded", async () => {
         if (!getSelectedLanguage()) {
-            const lang = navigator.language;
+            const lang = navigator.language || "en-US";
             const formattedLang = lang.startsWith('de-') ? 'DE' : lang;
             saveSelectedLanguage(formattedLang);
         }
