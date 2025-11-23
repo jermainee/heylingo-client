@@ -3,6 +3,7 @@
   "version": "0.1.24",
   "description": "Website translation made easy",
   "scripts": {
+    "build": "uglifyjs src/heylingo.js --compress --mangle -o dist/heylingo.min.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -14,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/jermainee/heylingo-client/issues"
   },
-  "homepage": "https://heylingo.de"
+  "homepage": "https://heylingo.de",
+  "dependencies": {
+    "uglify-js": "^3.19.3"
+  }
 }

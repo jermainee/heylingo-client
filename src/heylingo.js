@@ -1,0 +1,173 @@
+(function () {
+    const API_BASE = 'heylingo.io';
+
+    if (!window.location.hostname) {
+        console.error("Translation Script: Missing domain");
+        return;
+    }
+
+    function getSelectedLanguage() {
+        return localStorage.getItem("selectedLanguage");
+    }
+
+    function getOriginalLanguage() {
+        return localStorage.getItem("originalLanguage");
+    }
+
+    function saveSelectedLanguage(lang) {
+        localStorage.setItem("selectedLanguage", lang);
+    }
+
+    function saveOriginalLanguage(lang) {
+        localStorage.setItem("originalLanguage", lang);
+    }
+
+    function extractTextNodes() {
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+            acceptNode: function (node) {
+                // Skip whitespace-only text and language switcher
+                if (!node.textContent.trim()) return NodeFilter.FILTER_REJECT;
+                if (node.parentElement.closest("#languageSwitcher")) return NodeFilter.FILTER_REJECT;
+                return NodeFilter.FILTER_ACCEPT;
+            }
+        });
+
+        const texts = new Set();
+        let node;
+        while ((node = walker.nextNode())) {
+            texts.add(node.textContent.trim());
+        }
+        return Array.from(texts);
+    }
+
+    function applyTranslations(translations) {
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+            acceptNode: function (node) {
+                if (!node.textContent.trim()) return NodeFilter.FILTER_REJECT;
+                if (node.parentElement.closest("#languageSwitcher")) return NodeFilter.FILTER_REJECT;
+                return NodeFilter.FILTER_ACCEPT;
+            }
+        });
+
+        let node;
+        while ((node = walker.nextNode())) {
+            const original = node.textContent.trim();
+            if (translations[original]) {
+                node.textContent = translations[original].translated_text;
+            }
+        }
+    }
+
+    function fetchTranslations() {
+        const lang = getSelectedLanguage();
+
+        if (lang === getOriginalLanguage()) {
+            return;
+        }
+
+        const textsToTranslate = extractTextNodes();
+
+        fetch(`https://${API_BASE}/api/translate`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                domain: window.location.hostname,
+                texts: textsToTranslate,
+                target_lang: lang
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error("Translation API Error:", data.error);
+                    return;
+                }
+                applyTranslations(data.translations);
+            })
+            .catch(error => console.error("Error fetching translations:", error));
+    }
+
+    function fetchAvailableLanguages() {
+        fetch(`https://${API_BASE}/api/languages`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                domain: window.location.hostname
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error("Language API Error:", data.error);
+                    return;
+                }
+
+                if (data.original_language && data.original_language.code) {
+                    if (!localStorage.getItem("selectedLanguage")) {
+                        saveSelectedLanguage(data.original_language.code);
+                    }
+
+                    saveOriginalLanguage(data.original_language.code);
+                }
+
+                createLanguageSwitcher(data.target_languages);
+            })
+            .catch(error => console.error("Error fetching languages:", error));
+    }
+
+    function createLanguageSwitcher(languages) {
+        const switcher = document.createElement("div");
+        switcher.id = "languageSwitcher";
+        switcher.style.position = "fixed";
+        switcher.style.bottom = "20px";
+        switcher.style.right = "20px";
+        switcher.style.background = "white";
+        switcher.style.border = "1px solid #ddd";
+        switcher.style.padding = "10px";
+        switcher.style.boxShadow = "0px 2px 10px rgba(0,0,0,0.2)";
+        switcher.style.zIndex = "9999";
+        switcher.style.borderRadius = "5px";
+        switcher.style.color = "black";
+
+        const select = document.createElement("select");
+        select.style.padding = "5px";
+        select.style.fontSize = "14px";
+        select.style.border = "none";
+        select.style.outline = "none";
+        select.style.background = "white";
+        select.style.appearance = "none";
+
+        languages.forEach(lang => {
+            const option = document.createElement("option");
+            option.value = lang.code;
+            option.textContent = lang.name;
+            select.appendChild(option);
+        });
+
+        select.value = getSelectedLanguage();
+        select.addEventListener("change", () => {
+            saveSelectedLanguage(select.value);
+            location.reload();
+        });
+
+        switcher.appendChild(select);
+        document.body.appendChild(switcher);
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        if (!getSelectedLanguage()) {
+            const lang = navigator.language;
+            const formattedLang = lang.startsWith('de-') ? 'DE' : lang;
+            saveSelectedLanguage(formattedLang);
+        }
+
+        await fetchAvailableLanguages();
+        await fetchTranslations();
+
+        document.documentElement.lang = getSelectedLanguage();
+    });
+})();
