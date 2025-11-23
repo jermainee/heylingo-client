@@ -15,7 +15,7 @@
   "bugs": {
     "url": "https://github.com/jermainee/heylingo-client/issues"
   },
-  "homepage": "https://heylingo.de",
+  "homepage": "https://heylingo.io",
   "dependencies": {
     "uglify-js": "^3.19.3"
   }
